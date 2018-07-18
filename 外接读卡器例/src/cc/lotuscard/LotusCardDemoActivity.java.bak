@@ -1,0 +1,73 @@
+package cc.lotuscard;
+
+import android.app.Activity;
+import android.os.Bundle;
+
+public class LotusCardDemoActivity extends Activity {
+	private LotusCardDriver mLotusCardDriver ;
+    /** Called when the activity is first created. */
+	
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+        //LotusCardParam tLotusCardParam = new LotusCardParam();
+        mLotusCardDriver = new LotusCardDriver();
+        //int nDeviceHandle = mLotusCardDriver.OpenDevice("/dev/ttyTCC1", 0, 0);
+        int nDeviceHandle = mLotusCardDriver.OpenDevice("/dev/ttyS3", 0, 0);
+
+        if(nDeviceHandle > 0)
+        {
+
+        	testIcCardReader(nDeviceHandle);
+        	mLotusCardDriver.CloseDevice(nDeviceHandle);
+        }
+    }
+    private void testIcCardReader(int nDeviceHandle)
+    {
+        boolean bResult = false;
+        int nRequestType;
+        LotusCardParam tLotusCardParam1 =  new LotusCardParam();
+    	bResult = mLotusCardDriver.Beep(nDeviceHandle, 10);
+    	if(!bResult) return;
+        nRequestType = LotusCardDriver.RT_NOT_HALT;
+        bResult = mLotusCardDriver.Request(nDeviceHandle, nRequestType, tLotusCardParam1);
+        if(!bResult) return;
+        bResult = mLotusCardDriver.Anticoll(nDeviceHandle, tLotusCardParam1);
+        if(!bResult) return;
+        bResult = mLotusCardDriver.Select(nDeviceHandle, tLotusCardParam1);
+        if(!bResult) return;
+        
+        tLotusCardParam1.arrKeys[0]=(byte) 0xff;
+        tLotusCardParam1.arrKeys[1]=(byte) 0xff;
+        tLotusCardParam1.arrKeys[2]=(byte) 0xff;
+        tLotusCardParam1.arrKeys[3]=(byte) 0xff;
+        tLotusCardParam1.arrKeys[4]=(byte) 0xff;
+        tLotusCardParam1.arrKeys[5]=(byte) 0xff;                              
+       // bResult = mLotusCardDriver.LoadKey(nDeviceHandle, LotusCardDriver.AM_A, tLotusCardParam1);
+        bResult = mLotusCardDriver.Authentication(nDeviceHandle, LotusCardDriver.AM_A, 1, tLotusCardParam1);
+        if(!bResult) return;
+        bResult = mLotusCardDriver.Read(nDeviceHandle, 4, tLotusCardParam1);
+        if(!bResult) return;
+        
+        tLotusCardParam1.arrBuffer[0] = (byte)0x10;
+        tLotusCardParam1.arrBuffer[1] = (byte)0x01;
+        tLotusCardParam1.arrBuffer[2] = (byte)0x02;
+        tLotusCardParam1.arrBuffer[3] = (byte)0x03;
+        tLotusCardParam1.arrBuffer[4] = (byte)0x04;
+        tLotusCardParam1.arrBuffer[5] = (byte)0x05;
+        tLotusCardParam1.arrBuffer[6] = (byte)0x06;
+        tLotusCardParam1.arrBuffer[7] = (byte)0x07;
+        tLotusCardParam1.arrBuffer[8] = (byte)0x08;
+        tLotusCardParam1.arrBuffer[9] = (byte)0x09;
+        tLotusCardParam1.arrBuffer[10] =(byte) 0x0a;
+        tLotusCardParam1.arrBuffer[11] = (byte)0x0b;
+        tLotusCardParam1.arrBuffer[12] = (byte)0x0c;
+        tLotusCardParam1.arrBuffer[13] = (byte)0x0d;
+        tLotusCardParam1.arrBuffer[14] = (byte)0x0e;
+        tLotusCardParam1.arrBuffer[15] = (byte)0x0f;
+        tLotusCardParam1.nBufferSize =16;
+        bResult =mLotusCardDriver.Write(nDeviceHandle, 4, tLotusCardParam1); 
+        if(!bResult) return;
+    }
+}
